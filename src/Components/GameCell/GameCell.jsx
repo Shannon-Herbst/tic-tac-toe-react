@@ -4,21 +4,22 @@ import { GameContext } from '../../contexts/GameContext';
 import { checkForWinner } from '../../utils/GameUtils';
 import { ModalContext } from "../../contexts/ModalContext";
 import RoundOverModal from '../Modal/RoundOverModal';
+import { SoundEffectContext } from '../../contexts/SoundEffectsContexts';
 
 function GameCell({ cellItem, index }) {
     const { updateBoard, game, roundComplete } = useContext(GameContext);
+    const { hoverSfx } = useContext(SoundEffectContext);
     const { handleModal } = useContext(ModalContext);
 
     const cellClickHandler = () => {
-        if (game.board[index] !== null) return; // ignore clicks on filled cells
+        if (game.board[index] !== null) return; 
 
-        // build the board as it WILL be, since setGame is async
         const updatedBoard = [...game.board];
-        updatedBoard[index] = game.turn; // game.turn is the mark being placed now
+        updatedBoard[index] = game.turn; 
 
-        updateBoard(index); // this updates state + flips turn
+        updateBoard(index); 
 
-        const result = checkForWinner(updatedBoard); // "x" | "o" | "draw" | false
+        const result = checkForWinner(updatedBoard); 
 
         if (result) {
             const winner =
@@ -34,7 +35,7 @@ function GameCell({ cellItem, index }) {
     };
 
     return (
-        <CellStyle onClick={cellClickHandler}>{cellItem}</CellStyle>
+        <CellStyle onClick={cellClickHandler} onMouseEnter={() => hoverSfx()}>{cellItem}</CellStyle>
     );
 }
 

@@ -1,3 +1,4 @@
+import { BrowserRouter } from "react-router-dom";
 import Router from "./Router";
 import { GlobalStyle } from "./styles/Global.Styled";
 import { ThemeProvider } from "styled-components";
@@ -11,12 +12,14 @@ function App() {
   const mode = theme === "light" ? lightTheme : darkTheme;
 
   return (
-    <ThemeProvider theme={mode}>
-      <ModalContextProvider>
-        <GlobalStyle />
-        <Router />
-      </ModalContextProvider>
-    </ThemeProvider>
+    <BrowserRouter>
+      <ThemeProvider theme={mode}>
+        <ModalContextProvider>
+          <GlobalStyle />
+          <Router />
+        </ModalContextProvider>
+      </ThemeProvider>
+    </BrowserRouter>
   );
 }
 
