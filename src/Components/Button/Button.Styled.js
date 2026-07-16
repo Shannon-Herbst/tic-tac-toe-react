@@ -15,4 +15,8 @@ export const ButtonWrapper = styled.button`
         box-shadow: 0px 0px 10px red;
         cursor: pointer;
     }
+
+    ${(props) => props.theme.media.mobile} {
+        min-width: 100px;
+    }
 `
