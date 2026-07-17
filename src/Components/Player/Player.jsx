@@ -1,11 +1,10 @@
 import React from 'react'
 import { PlayerWrapper, AvatarWrapper } from './Player.Styled';
-import Avatar, { genConfig } from 'react-nice-avatar';
+import Avatar from 'react-nice-avatar';
 import { Text } from '../../styles/General.Styled';
 
 function Player({ player, isPlayerActive }) {
-
-  const config = genConfig() 
+ 
 
   return (
     <PlayerWrapper >
