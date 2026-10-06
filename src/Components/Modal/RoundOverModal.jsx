@@ -32,7 +32,11 @@ function RoundOverModal() {
 
       <ModalBody>
         <Subtitle primary>
-          {game.roundWinner ? `${game.roundWinner.name} won this round` : "round drawn"}
+          {game.endedByTimeout
+            ? `${game.roundWinner.name} wins — opponent ran out of time`
+            : game.roundWinner
+            ? `${game.roundWinner.name} won this round`
+            : "round drawn"}
         </Subtitle>
         <Subtitle primary>{game.player1.name} : {game.player1.score}</Subtitle>
         <Subtitle primary>{game.player2.name} : {game.player2.score}</Subtitle>

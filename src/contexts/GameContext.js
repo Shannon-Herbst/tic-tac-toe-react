@@ -2,122 +2,123 @@ import { createContext, useState } from "react";
 import { genConfig } from 'react-nice-avatar';
 
 export const GameContext = createContext();
+export const TURN_SECONDS = 10;
+
+const emptyBoard = () => [null, null, null, null, null, null, null, null, null];
+
+const createInitialGame = () => ({
+    board: emptyBoard(),
+    player1: {
+        choice: "x",
+        name: "player1",
+        score: 0,
+        color: "yellow",
+        avatarConfig: genConfig()
+    },
+    player2: {
+        choice: "o",
+        name: "player2",
+        score: 0,
+        color: "purple",
+        avatarConfig: genConfig()
+    },
+    turn: "x",
+    roundWinner: "",
+    isRoundOver: false,
+    endedByTimeout: false
+});
 
 export const GameContextProvider = (props) => {
-    const [game, setGame] = useState({
-        board: [null, null, null, null, null, null, null, null, null],
-        player1: {
-            choice: "x",
-            name: "player1",
-            score: 0,
-            color: "yellow",
-            avatarConfig: genConfig()
-        },
-        player2: {
-            choice: "o",
-            name: "player2",
-            score: 0,
-            color: "purple",
-            avatarConfig: genConfig()
-        },
-        turn: "x",
-        roundWinner: ""
-    });
+    const [game, setGame] = useState(createInitialGame);
 
     const updateBoard = (index) => {
-        const updatedBoard = [...game.board];
-        updatedBoard[index] = game.turn;
-        setGame({
-            ...game,
-            board: updatedBoard,
-            turn: game.turn === "x" ? "o" : "x"
+        setGame((prevGame) => {
+            if (prevGame.isRoundOver || prevGame.board[index] !== null) {
+                return prevGame;
+            }
+            const updatedBoard = [...prevGame.board];
+            updatedBoard[index] = prevGame.turn;
+            return {
+                ...prevGame,
+                board: updatedBoard,
+                turn: prevGame.turn === "x" ? "o" : "x"
+            };
         });
     };
 
     const resetBoard = () => {
         setGame((prevGame) => ({
             ...prevGame,
-            board: [null, null, null, null, null, null, null, null, null],
-            turn: "x"
+            board: emptyBoard(),
+            turn: "x",
+            isRoundOver: false,
+            endedByTimeout: false
         }));
     };
 
     const restartGame = () => {
-        setGame({
-            board: [null, null, null, null, null, null, null, null, null],
-        player1: {
-            choice: "x",
-            name: "player1",
-            score: 0,
-            color: "yellow",
-            avatarConfig: genConfig()
-        },
-        player2: {
-            choice: "o",
-            name: "player2",
-            score: 0,
-            color: "purple",
-            avatarConfig: genConfig()
-        },
-        turn: "x",
-        roundWinner: ""
-        })
-    }
+        setGame(createInitialGame());
+    };
 
     const toggleChoice = (choice) => (choice === "x" ? "o" : "x");
 
-    const switchTurn = () => {
-        setGame((prevGame) => ({
-            ...prevGame,
-            player1: {
-                ...prevGame.player1,
-                choice: toggleChoice(prevGame.player1.choice)
-            },
-            player2: {
-                ...prevGame.player2,
-                choice: toggleChoice(prevGame.player2.choice)
-            },
-            turn: "x",
-            roundWinner: ""
-        }));
-    };
+    const applyRoundResult = (prevGame, winner, endedByTimeout = false) => {
+        const player1 = {
+            ...prevGame.player1,
+            choice: toggleChoice(prevGame.player1.choice)
+        };
+        const player2 = {
+            ...prevGame.player2,
+            choice: toggleChoice(prevGame.player2.choice)
+        };
 
-    const updateScore = (winner) => {
         if (winner === "draw") {
-            setGame((prevGame) => ({
-                ...prevGame,
-                player1: {
-                    ...prevGame.player1,
-                    score: prevGame.player1.score + 0.5
-                },
-                player2: {
-                    ...prevGame.player2,
-                    score: prevGame.player2.score + 0.5
-                },
-                roundWinner: ""
-            }));
+            player1.score += 0.5;
+            player2.score += 0.5;
         } else {
-            setGame((prevGame) => ({
-                ...prevGame,
-                [winner]: {
-                    ...prevGame[winner],
-                    score: prevGame[winner].score + 1
-                },
-                roundWinner: prevGame[winner]
-            }));
+            if (winner === "player1") {
+                player1.score += 1;
+            } else {
+                player2.score += 1;
+            }
         }
+
+        return {
+            ...prevGame,
+            player1,
+            player2,
+            turn: "x",
+            roundWinner: winner === "draw" ? "" : prevGame[winner],
+            isRoundOver: true,
+            endedByTimeout
+        };
     };
 
     // winner is "player1" | "player2" | "draw"
-    const roundComplete = (winner) => {
-        updateScore(winner);
-        switchTurn();
+    const roundComplete = (winner, endedByTimeout = false) => {
+        setGame((prevGame) => {
+            if (prevGame.isRoundOver) {
+                return prevGame;
+            }
+            return applyRoundResult(prevGame, winner, endedByTimeout);
+        });
+    };
+
+    const handleTurnTimeout = () => {
+        setGame((prevGame) => {
+            if (prevGame.isRoundOver) {
+                return prevGame;
+            }
+            const winner =
+                prevGame.turn === prevGame.player1.choice ? "player2" : "player1";
+            return applyRoundResult(prevGame, winner, true);
+        });
     };
 
     const resetGame = () => {
         setGame((prevGame) => ({
             ...prevGame,
-            board: [null, null, null, null, null, null, null, null, null],
+            board: emptyBoard(),
             player1: {
                 ...prevGame.player1,
                 choice: "x",
@@ -129,7 +130,9 @@ export const GameContextProvider = (props) => {
                 score: 0
             },
             turn: "x",
-            roundWinner: ""
+            roundWinner: "",
+            isRoundOver: false,
+            endedByTimeout: false
         }));
     };
 
@@ -141,6 +144,7 @@ export const GameContextProvider = (props) => {
                 updateBoard,
                 resetBoard,
                 roundComplete,
+                handleTurnTimeout,
                 resetGame,
                 restartGame
             }}

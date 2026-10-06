@@ -12,7 +12,7 @@ function GameCell({ cellItem, index }) {
     const { handleModal } = useContext(ModalContext);
 
     const cellClickHandler = () => {
-        if (game.board[index] !== null) return; 
+        if (game.isRoundOver || game.board[index] !== null) return; 
 
         const updatedBoard = [...game.board];
         updatedBoard[index] = game.turn; 
